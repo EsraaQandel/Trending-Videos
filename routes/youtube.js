@@ -7,17 +7,21 @@ const service = new YoutubeService();
 
 /* GET home page. */
 router.get('/', async (req, res) => {
-  const trends = await service.getTrendingVideos();
+  let countryCode = "US";
+  const trends = await service.getTrendingVideos(countryCode);
   res.render('youtube/index', {
     title: config.title,
-    videos: trends
+    videos: trends,
+    countries: config.countryList
   });
 });
+
 
 router.get('/:videoId', async (req, res) => {
   res.render('youtube/player', {
     title: config.title
   });
 });
+
 
 module.exports = router;

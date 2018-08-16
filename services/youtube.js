@@ -1,3 +1,4 @@
+import express from 'express';
 import Axios from 'axios';
 import * as config from '../config.json';
 import moment from "moment";
@@ -7,30 +8,28 @@ const axios = Axios.create({
 });
 
 export class YoutubeService {
-  getTrendingVideos() {
+  getTrendingVideos(countryCode) {
     var params = {
       part: 'snippet',
       chart: 'mostPopular',
-      regionCode: 'US', // should be replaced with country code from countryList
+      regionCode: countryCode, // should be replaced with country code from countryList
       maxResults: '24',
       key: config.youtubeApi.key
     };
 
     var result = [];
 
-    return axios.get('/', {params}).then(function(res){
+    return axios.get('/', {params}).then(async function(res){ //async problem solved
       result = res.data.items;
-      result.map(res =>{
-        let video ={
-          id:res.id,
-          title:res.snippet.title,
-          thumbnail: res.snippet.thumbnails.high.url,
-          publishedAt: moment(res.snippet.publishedAt).fromNow()
-        }
-        let videoDetails = YoutubeService.getVideoDetails(video);
-        result.push(videoDetails);
-      });
-      console.log(result);
+      for (var i = 0; i < result.length; i++) {
+        result[i] = {
+          id: result[i].id,
+          title: result[i].snippet.title,
+          thumbnail: result[i].snippet.thumbnails.high.url,
+          publishedAt: moment(result[i].snippet.publishedAt).fromNow()
+        };
+        result[i] = await YoutubeService.getVideoDetails(result[i]);
+      }
       return result;
     });
 
@@ -47,7 +46,8 @@ export class YoutubeService {
       var result = res.data;
       video.viewCount = result['items'][0].statistics.viewCount;
       video.likeCount = result['items'][0].statistics.likeCount;
-      console.log(video);
+      
+      console.log("from 2",video)
       return video;
     });
   }
